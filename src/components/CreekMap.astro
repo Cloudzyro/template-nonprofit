@@ -1,0 +1,165 @@
+---
+// A field map of the watershed: contour lines, the creek, the stretches already
+// replanted, the twelve Creek Watch test sites and the two old mill dams.
+// Drawn in code; edit the points below to match your own place.
+
+// Contour rings around two hills, wobbled with a few sine waves so they look surveyed.
+const ring = (cx: number, cy: number, r: number, seed: number) => {
+  const pts: string[] = [];
+  for (let i = 0; i <= 72; i++) {
+    const a = (i / 72) * Math.PI * 2;
+    const w = 1 + 0.12 * Math.sin(a * 3 + seed) + 0.07 * Math.sin(a * 5 + seed * 2) + 0.04 * Math.sin(a * 9 + seed);
+    pts.push(`${(cx + Math.cos(a) * r * w * 1.25).toFixed(1)},${(cy + Math.sin(a) * r * w).toFixed(1)}`);
+  }
+  return `M${pts.join("L")}Z`;
+};
+const contours = [
+  ...[30, 55, 80, 105, 130, 155].map((r, i) => ({ d: ring(150, 120, r, 1.3), major: i % 3 === 2 })),
+  ...[24, 48, 72, 96, 120].map((r, i) => ({ d: ring(470, 330, r, 2.7), major: i % 3 === 2 })),
+];
+
+// The creek, from the hills in the north-west to the river in the south-east.
+const creek = "M40 20 C90 90 60 150 140 190 S260 200 290 260 S300 340 380 380 S520 360 560 440 S620 520 660 520";
+// Replanted stretches, drawn over the creek as fractions of its length.
+const planted = [
+  [0.12, 0.24],
+  [0.36, 0.52],
+  [0.66, 0.74],
+];
+const sites = [0.04, 0.12, 0.2, 0.28, 0.36, 0.43, 0.5, 0.58, 0.66, 0.74, 0.83, 0.93];
+const dams = [
+  { at: 0.47, label: "Upper Mill dam" },
+  { at: 0.78, label: "Lower Mill dam" },
+];
+---
+
+<figure class="map">
+  <svg viewBox="0 0 680 540" role="img" aria-labelledby="creek-map-title creek-map-desc" data-creek-map>
+    <title id="creek-map-title">Map of Ashby Creek</title>
+    <desc id="creek-map-desc">
+      The creek winds from the hills in the north-west through the town of Ashby to the Cedar River in the south-east.
+      Three stretches of bank are marked as replanted, twelve water testing sites are marked along its length, and two
+      old mill dams are marked where fish can't pass.
+    </desc>
+    <rect width="680" height="540" fill="#efe9dc"></rect>
+    <g fill="none" stroke="#b9a98d">
+      {contours.map((c) => <path d={c.d} stroke-width={c.major ? 1.2 : 0.6} opacity={c.major ? 0.9 : 0.6} />)}
+    </g>
+    <g fill="#e3dccb" stroke="#cbbfa8" stroke-width="0.8">
+      <rect x="330" y="210" width="26" height="18"></rect>
+      <rect x="362" y="214" width="20" height="14"></rect>
+      <rect x="336" y="236" width="18" height="14"></rect>
+      <rect x="360" y="238" width="24" height="16"></rect>
+    </g>
+    <text x="392" y="232" class="lbl">Ashby</text>
+    <path d="M600 540 C620 500 650 480 680 470 V540Z" fill="#c4d6d2"></path>
+    <text x="596" y="532" class="lbl">Cedar River</text>
+    <path d={creek} fill="none" stroke="#f7f3ea" stroke-width="9" stroke-linecap="round"></path>
+    <path d={creek} fill="none" stroke="#3d7f8a" stroke-width="3.5" stroke-linecap="round" id="creek-line"></path>
+    <g data-planted opacity="0">
+      {planted.map(([a, b]) => <path d={creek} fill="none" stroke="#5f7d3b" stroke-width="9" stroke-linecap="round" opacity="0.85" data-from={a} data-to={b} />)}
+    </g>
+    <g data-sites opacity="0">
+      {sites.map((t, i) => <circle r="5" fill="#fdfbf6" stroke="#1f1d18" stroke-width="1.5" data-at={t} data-n={i + 1} />)}
+    </g>
+    <g data-dams opacity="0">
+      {dams.map((d) => <rect width="14" height="5" x="-7" y="-2.5" fill="#1f1d18" data-at={d.at} data-label={d.label} />)}
+    </g>
+    <text x="28" y="520" class="lbl">North fork</text>
+    <g transform="translate(628 38)" class="north" aria-hidden="true">
+      <path d="M0 -16 L6 6 L0 2 L-6 6Z" fill="#1f1d18"></path>
+      <text y="22" text-anchor="middle" class="lbl">N</text>
+    </g>
+  </svg>
+  <figcaption>
+    <span><i class="k k-creek"></i> Ashby Creek, 23 miles</span>
+    <span><i class="k k-planted"></i> Banks replanted</span>
+    <span><i class="k k-site"></i> Creek Watch test sites</span>
+    <span><i class="k k-dam"></i> Old mill dams</span>
+  </figcaption>
+</figure>
+
+<script>
+  // Place the planted stretches, test sites and dams along the creek's real length.
+  document.querySelectorAll<SVGSVGElement>("[data-creek-map]").forEach((svg) => {
+    const line = svg.querySelector<SVGPathElement>("#creek-line")!;
+    const len = line.getTotalLength();
+    svg.querySelectorAll<SVGPathElement>("[data-planted] path").forEach((p) => {
+      const a = Number(p.dataset.from) * len;
+      const b = Number(p.dataset.to) * len;
+      p.setAttribute("stroke-dasharray", `${b - a} ${len}`);
+      p.setAttribute("stroke-dashoffset", String(-a));
+    });
+    svg.querySelectorAll<SVGElement>("[data-at]").forEach((el) => {
+      const at = Number(el.dataset.at) * len;
+      const pt = line.getPointAtLength(at);
+      const next = line.getPointAtLength(Math.min(len, at + 1));
+      const angle = (Math.atan2(next.y - pt.y, next.x - pt.x) * 180) / Math.PI + 90;
+      if (el.tagName === "circle") {
+        el.setAttribute("cx", String(pt.x));
+        el.setAttribute("cy", String(pt.y));
+      } else {
+        el.setAttribute("transform", `translate(${pt.x} ${pt.y}) rotate(${angle})`);
+      }
+    });
+    svg.querySelectorAll("[data-planted], [data-sites], [data-dams]").forEach((g) => g.setAttribute("opacity", "1"));
+  });
+</script>
+
+<style>
+  .map {
+    margin: 0;
+  }
+  svg {
+    width: 100%;
+    height: auto;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+  }
+  .lbl {
+    font-family: var(--sans);
+    font-size: 13px;
+    fill: #57514a;
+  }
+  figcaption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin-top: 0.875rem;
+    font-size: 0.8125rem;
+    color: var(--text-2);
+  }
+  figcaption span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .k {
+    display: inline-block;
+    flex: none;
+  }
+  .k-creek {
+    width: 18px;
+    height: 3px;
+    background: #3d7f8a;
+    border-radius: 2px;
+  }
+  .k-planted {
+    width: 18px;
+    height: 8px;
+    background: #5f7d3b;
+    border-radius: 4px;
+  }
+  .k-site {
+    width: 10px;
+    height: 10px;
+    border: 1.5px solid #1f1d18;
+    border-radius: 50%;
+    background: #fdfbf6;
+  }
+  .k-dam {
+    width: 14px;
+    height: 5px;
+    background: #1f1d18;
+  }
+</style>

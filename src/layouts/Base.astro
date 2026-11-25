@@ -1,0 +1,227 @@
+---
+import "@fontsource-variable/public-sans";
+import "@fontsource-variable/source-serif-4";
+import "../styles/global.css";
+import { nav, org } from "../data/site";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const { title, description = org.description } = Astro.props;
+const fullTitle = title ? `${title} | ${org.name}` : `${org.name}: ${org.tagline}`;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL("/og.png", Astro.site);
+---
+
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <meta name="theme-color" content="#f6f3ec" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={org.name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="wrap bar">
+        <a class="brand" href="/" aria-label={`${org.name}, home`}>
+          <svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true">
+            <circle cx="16" cy="16" r="15" fill="none" stroke="#1d5c63" stroke-width="1.5"></circle>
+            <path d="M5 19c3-3 6-3 9 0s6 3 9 0 4-2 5-1" fill="none" stroke="#1d5c63" stroke-width="2" stroke-linecap="round"></path>
+            <path d="M16 6v9M16 9l-3-3M16 11l3-3" fill="none" stroke="#1f1d18" stroke-width="1.6" stroke-linecap="round"></path>
+          </svg>
+          <span>{org.name}</span>
+        </a>
+        <nav aria-label="Main" class="desktop-nav">
+          <ul>{nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
+        </nav>
+        <a class="btn btn-primary donate" href="/#donate">Donate</a>
+        <details class="mobile-nav">
+          <summary>Menu</summary>
+          <nav aria-label="Main, mobile">
+            <ul>{nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
+          </nav>
+        </details>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <footer class="site-footer">
+      <div class="wrap foot">
+        <div class="foot-org">
+          <p class="foot-name">{org.name}</p>
+          <p>{org.address}</p>
+          <p><a href={`mailto:${org.contactEmail}`}>{org.contactEmail}</a></p>
+          {org.legal && <p class="small">{org.legal}</p>}
+        </div>
+        <ul class="foot-links">
+          {nav.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+        </ul>
+        <ul class="foot-links">
+          {org.social.map((s) => <li><a href={s.href} rel="noopener">{s.label}</a></li>)}
+          <li><a href="/#donate">Donate</a></li>
+        </ul>
+      </div>
+    </footer>
+    <script>
+      document.querySelectorAll<HTMLAnchorElement>(".mobile-nav a").forEach((a) =>
+        a.addEventListener("click", () => a.closest("details")?.removeAttribute("open")),
+      );
+    </script>
+  </body>
+</html>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    min-height: 68px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    font-weight: 500;
+    text-decoration: none;
+    margin-right: auto;
+  }
+  .desktop-nav ul {
+    display: flex;
+    gap: 1.5rem;
+  }
+  .desktop-nav a {
+    color: var(--text-2);
+    text-decoration: none;
+    font-size: 0.9375rem;
+    transition: color 160ms var(--ease);
+  }
+  .desktop-nav a:hover {
+    color: var(--text);
+  }
+  .donate {
+    min-height: 38px;
+    padding: 0 1.125rem;
+    font-size: 0.9375rem;
+  }
+  .mobile-nav {
+    display: none;
+    position: relative;
+  }
+  .mobile-nav summary {
+    list-style: none;
+    cursor: pointer;
+    font-weight: 500;
+    padding: 0.4375rem 0.75rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+  }
+  .mobile-nav summary::-webkit-details-marker {
+    display: none;
+  }
+  .mobile-nav nav {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    width: min(80vw, 260px);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+  }
+  .mobile-nav a {
+    display: block;
+    padding: 0.625rem 0.75rem;
+    border-radius: 6px;
+    text-decoration: none;
+  }
+  .mobile-nav a:hover {
+    background: var(--raised);
+  }
+  @media (max-width: 900px) {
+    .desktop-nav {
+      display: none;
+    }
+    .mobile-nav {
+      display: block;
+    }
+    .bar {
+      gap: 0.75rem;
+    }
+  }
+  @media (max-width: 420px) {
+    .brand span {
+      font-size: 1.0625rem;
+    }
+  }
+  .site-footer {
+    border-top: 1px solid var(--line);
+    padding-block: 3rem;
+    font-size: 0.9375rem;
+  }
+  .foot {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 2rem;
+  }
+  .foot-org {
+    display: grid;
+    gap: 0.25rem;
+    color: var(--text-2);
+    align-content: start;
+  }
+  .foot-name {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    color: var(--text);
+  }
+  .foot-links {
+    display: grid;
+    gap: 0.375rem;
+    align-content: start;
+  }
+  .foot a {
+    color: var(--text-2);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+  .foot a:hover {
+    color: var(--text);
+    text-decoration: underline;
+  }
+  @media (max-width: 720px) {
+    .foot {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

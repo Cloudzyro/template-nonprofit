@@ -1,0 +1,185 @@
+/* Colors and fonts live here. Change the tokens to restyle the whole site. */
+:root {
+  --bg: #f6f3ec;
+  --card: #fdfbf6;
+  --raised: #ece6da;
+  --text: #1f1d18;
+  --text-2: #57514a;
+  --text-3: #756e64;
+  --line: rgb(31 29 24 / 0.1);
+  --line-strong: rgb(31 29 24 / 0.18);
+  --creek: #1d5c63; /* the accent: creek water */
+  --creek-dark: #164a50;
+  --creek-pale: #d7e4e1;
+  --max: 1160px;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --serif: "Source Serif 4 Variable", Georgia, serif;
+  --sans: "Public Sans Variable", system-ui, sans-serif;
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 500;
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+h2 {
+  font-size: clamp(1.875rem, 3.6vw, 2.75rem);
+}
+
+h3 {
+  font-size: 1.375rem;
+}
+
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--creek);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.wrap {
+  width: min(100% - 2.5rem, var(--max));
+  margin-inline: auto;
+}
+
+.section {
+  padding-block: clamp(4rem, 9vw, 7rem);
+}
+
+.section-head {
+  display: grid;
+  gap: 1rem;
+  max-width: 42rem;
+  margin-bottom: 3rem;
+}
+
+.section-head p {
+  color: var(--text-2);
+  font-size: 1.125rem;
+}
+
+.small {
+  font-size: 0.875rem;
+  color: var(--text-3);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 46px;
+  padding: 0 1.375rem;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  font: inherit;
+  font-weight: 600;
+  font-size: 1rem;
+  white-space: nowrap;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease),
+    border-color 160ms var(--ease),
+    transform 120ms var(--ease);
+}
+.btn:active {
+  transform: scale(0.98);
+}
+.btn-primary {
+  background: var(--creek);
+  color: #fff;
+}
+.btn-primary:hover {
+  background: var(--creek-dark);
+}
+.btn-secondary {
+  border-color: var(--line-strong);
+  background: transparent;
+  color: var(--text);
+}
+.btn-secondary:hover {
+  background: var(--raised);
+}
+
+.skip {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  background: var(--text);
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+}
+.skip:focus {
+  top: 1rem;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}

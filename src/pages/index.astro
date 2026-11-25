@@ -1,0 +1,676 @@
+---
+import Base from "../layouts/Base.astro";
+import CreekMap from "../components/CreekMap.astro";
+import { donate, event, hero, impact, mission, org, programs, stories, volunteer } from "../data/site";
+
+const endpoint = (import.meta.env.PUBLIC_FORM_ENDPOINT ?? "").trim();
+const mailto = `mailto:${org.contactEmail}`;
+const usd = (n: number) => `$${n.toLocaleString("en-US")}`;
+const donateLink = (amount: number) => {
+  const u = new URL(org.donateUrl);
+  u.searchParams.set(org.donateAmountParam, String(amount));
+  return u.toString();
+};
+const pct = Math.min(100, Math.round((event.raised / event.goal) * 100));
+const [lead, ...more] = stories;
+---
+
+<Base>
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-copy">
+        <h1>{hero.title}</h1>
+        <p class="lede">{hero.text}</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="#donate">Donate</a>
+          <a class="btn btn-secondary" href="#volunteer">Volunteer</a>
+        </div>
+      </div>
+      <CreekMap />
+    </div>
+  </section>
+
+  <section class="section mission" aria-labelledby="mission-title">
+    <div class="wrap mission-grid">
+      <h2 id="mission-title">{mission.title}</h2>
+      <div class="prose">{mission.paragraphs.map((p) => <p>{p}</p>)}</div>
+    </div>
+  </section>
+
+  <section id="programs" class="section" aria-labelledby="programs-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="programs-title">Our work</h2>
+        <p>Three programs, all run by volunteers, all on the same 23 miles of water.</p>
+      </div>
+      <ol class="programs">
+        {
+          programs.map((p, i) => (
+            <li>
+              <span class="prog-n">{i + 1}</span>
+              <h3>{p.title}</h3>
+              <p class="prog-text">{p.text}</p>
+              <p class="small">{p.detail}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <section id="impact" class="section impact" aria-labelledby="impact-title">
+    <div class="wrap">
+      <div class="impact-head">
+        <h2 id="impact-title">Since 2016</h2>
+        <p class="sample">{impact.note}</p>
+      </div>
+      <dl class="stats">
+        {
+          impact.stats.map((s) => (
+            <div>
+              <dt>{s.label}</dt>
+              <dd>
+                {s.value}
+                {s.unit && <span>{s.unit}</span>}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <section id="stories" class="section" aria-labelledby="stories-title">
+    <div class="wrap">
+      <div class="section-head">
+        <h2 id="stories-title">Stories from the creek</h2>
+      </div>
+      <div class="stories">
+        <a class="story-lead" href={`/stories/${lead.slug}/`}>
+          <blockquote>{lead.quote}</blockquote>
+          <p class="who">
+            <strong>{lead.person}</strong>, {lead.role}
+          </p>
+          <span class="read">Read {lead.person.split(" ")[0]}'s story</span>
+        </a>
+        <ul class="story-more">
+          {
+            more.map((s) => (
+              <li>
+                <a href={`/stories/${s.slug}/`}>
+                  <h3>{s.title}</h3>
+                  <p class="small">
+                    {s.person}, {s.role}
+                  </p>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="event" class="section event" aria-labelledby="event-title">
+    <div class="wrap event-grid">
+      <div>
+        <p class="kind">{event.kind}</p>
+        <h2 id="event-title">{event.title}</h2>
+        <p class="event-text">{event.text}</p>
+        <a class="btn btn-primary" href={event.url} rel="noopener">Sign up for the run</a>
+      </div>
+      <div class="event-card">
+        <dl class="event-facts">
+          <div><dt>When</dt><dd>{event.date}<br />{event.time}</dd></div>
+          <div><dt>Where</dt><dd>{event.place}</dd></div>
+          <div><dt>Entry</dt><dd>{event.price}</dd></div>
+        </dl>
+        <div class="goal">
+          <p class="goal-line">
+            <span><strong>{usd(event.raised)}</strong> raised</span>
+            <span class="small">of {usd(event.goal)}</span>
+          </p>
+          <div class="bar" role="img" aria-label={`${pct}% of the goal raised`}><span style={`width:${pct}%`}></span></div>
+          <p class="small">Sample figure, for this template</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="donate" class="section donate" aria-labelledby="donate-title">
+    <div class="wrap donate-grid">
+      <div class="section-head">
+        <h2 id="donate-title">{donate.title}</h2>
+        <p>{donate.text}</p>
+      </div>
+      <form class="give" action={org.donateUrl} method="get" data-base={org.donateUrl} data-param={org.donateAmountParam}>
+        <fieldset>
+          <legend>Choose an amount</legend>
+          <div class="amounts">
+            {
+              donate.amounts.map((a) => (
+                <label class="amount">
+                  <input type="radio" name={org.donateAmountParam} value={a.value} checked={a.value === donate.defaultAmount} />
+                  <span class="amount-v">{usd(a.value)}</span>
+                  <span class="amount-b">{a.buys}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+        <label class="monthly">
+          <input type="checkbox" name="frequency" value="monthly" />
+          <span>Make it monthly</span>
+        </label>
+        <button class="btn btn-primary" type="submit" data-give-label>Give {usd(donate.defaultAmount)}</button>
+        <p class="small">You'll finish on our secure donation page. Gifts are tax-deductible as allowed by law.</p>
+      </form>
+    </div>
+  </section>
+
+  <section id="volunteer" class="section" aria-labelledby="volunteer-title">
+    <div class="wrap vol-grid">
+      <div class="section-head">
+        <h2 id="volunteer-title">{volunteer.title}</h2>
+        <p>{volunteer.text}</p>
+      </div>
+      <form
+        class="vol"
+        action={endpoint || mailto}
+        method="post"
+        enctype={endpoint ? undefined : "text/plain"}
+        data-endpoint={endpoint}
+        data-mailto={org.contactEmail}
+      >
+        <div class="row">
+          <label><span>Name</span><input name="name" autocomplete="name" required /></label>
+          <label><span>Email</span><input name="email" type="email" autocomplete="email" required /></label>
+        </div>
+        <fieldset>
+          <legend>I'd like to help with</legend>
+          <div class="checks">
+            {
+              volunteer.interests.map((i) => (
+                <label class="check">
+                  <input type="checkbox" name="interests" value={i} />
+                  <span>{i}</span>
+                </label>
+              ))
+            }
+          </div>
+        </fieldset>
+        <label><span>Anything we should know <span class="opt">(optional)</span></span><textarea name="message" rows="3"></textarea></label>
+        <div class="visually-hidden" aria-hidden="true">
+          <label>Leave this empty <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" /></label>
+        </div>
+        {!endpoint && <p class="small">This form isn't connected yet, so sending it opens your email app with your answers filled in.</p>}
+        <button class="btn btn-primary" type="submit">Send</button>
+        <p class="status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Donate: send the chosen amount (and monthly) to the donation page.
+  const give = document.querySelector<HTMLFormElement>("form.give")!;
+  const label = give.querySelector<HTMLButtonElement>("[data-give-label]")!;
+  const update = () => {
+    const amount = (give.querySelector("input[type=radio]:checked") as HTMLInputElement | null)?.value ?? "";
+    const monthly = (give.querySelector("input[name=frequency]") as HTMLInputElement).checked;
+    label.textContent = `Give $${Number(amount).toLocaleString("en-US")}${monthly ? " a month" : ""}`;
+  };
+  give.addEventListener("change", update);
+  update();
+
+  // Volunteer form
+  const form = document.querySelector<HTMLFormElement>("form.vol")!;
+  const status = form.querySelector<HTMLElement>(".status")!;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    if (data.get("_gotcha")) return;
+    const endpoint = form.dataset.endpoint;
+    if (!endpoint) {
+      const subject = encodeURIComponent(`Volunteering: ${data.get("name")}`);
+      const body = encodeURIComponent(
+        `Name: ${data.get("name")}\nEmail: ${data.get("email")}\nInterests: ${data.getAll("interests").join(", ")}\n\n${data.get("message")}`,
+      );
+      window.location.href = `mailto:${form.dataset.mailto}?subject=${subject}&body=${body}`;
+      return;
+    }
+    const button = form.querySelector<HTMLButtonElement>("button[type=submit]")!;
+    button.disabled = true;
+    status.textContent = "Sending...";
+    try {
+      const res = await fetch(endpoint, { method: "POST", body: data, headers: { Accept: "application/json" } });
+      if (!res.ok) throw new Error(String(res.status));
+      form.reset();
+      status.textContent = "Thank you. We'll email you the next dates within a week.";
+    } catch {
+      status.textContent = `That didn't go through. Please email ${form.dataset.mailto} instead.`;
+    } finally {
+      button.disabled = false;
+    }
+  });
+</script>
+
+<style>
+  .hero {
+    padding-block: clamp(3rem, 6vw, 5rem);
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: center;
+  }
+  h1 {
+    font-size: clamp(2.375rem, 5vw, 3.75rem);
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+  }
+  .lede {
+    margin-top: 1.5rem;
+    font-size: 1.1875rem;
+    color: var(--text-2);
+    max-width: 34rem;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  .mission {
+    background: var(--card);
+    border-block: 1px solid var(--line);
+  }
+  .mission-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 3rem;
+  }
+  .prose {
+    display: grid;
+    gap: 1.25rem;
+    font-family: var(--serif);
+    font-size: 1.3125rem;
+    line-height: 1.55;
+    max-width: 40rem;
+  }
+
+  .programs {
+    display: grid;
+    border-top: 1px solid var(--line-strong);
+  }
+  .programs li {
+    display: grid;
+    grid-template-columns: 3rem 1fr 1.6fr 14rem;
+    gap: 1.5rem;
+    align-items: baseline;
+    padding: 1.75rem 0;
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .prog-n {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    color: var(--creek);
+  }
+  .prog-text {
+    color: var(--text-2);
+  }
+
+  .impact {
+    background: var(--creek);
+    color: #f3f1ea;
+  }
+  .impact-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .sample {
+    font-size: 0.875rem;
+    color: #c4d7d4;
+    border: 1px dashed rgb(255 255 255 / 0.35);
+    border-radius: 6px;
+    padding: 0.25rem 0.625rem;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin: 0;
+    border-top: 1px solid rgb(255 255 255 / 0.2);
+  }
+  .stats > div {
+    display: flex;
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding: 1.5rem 1.5rem 0 0;
+  }
+  .stats > div + div {
+    padding-left: 1.5rem;
+    border-left: 1px solid rgb(255 255 255 / 0.2);
+  }
+  .stats dt {
+    color: #c4d7d4;
+    font-size: 0.9375rem;
+  }
+  .stats dd {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 4.5vw, 3.5rem);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .stats dd span {
+    font-size: 1.25rem;
+    margin-left: 0.375rem;
+    color: #c4d7d4;
+  }
+
+  .stories {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 3rem;
+    align-items: start;
+  }
+  .story-lead {
+    display: grid;
+    gap: 1.25rem;
+    text-decoration: none;
+    padding-left: 1.5rem;
+    border-left: 3px solid var(--creek);
+  }
+  blockquote {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 2.8vw, 2.125rem);
+    line-height: 1.3;
+  }
+  .who {
+    color: var(--text-2);
+  }
+  .read,
+  .story-more a h3 {
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 4px;
+    transition: text-decoration-color 160ms var(--ease);
+  }
+  .read {
+    color: var(--creek);
+    font-weight: 600;
+  }
+  .story-lead:hover .read,
+  .story-more a:hover h3 {
+    text-decoration-color: currentColor;
+  }
+  .story-more {
+    display: grid;
+  }
+  .story-more li {
+    border-top: 1px solid var(--line-strong);
+  }
+  .story-more li:last-child {
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .story-more a {
+    display: grid;
+    gap: 0.375rem;
+    padding: 1.25rem 0;
+    text-decoration: none;
+  }
+
+  .event {
+    background: var(--raised);
+  }
+  .event-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+  .kind {
+    color: var(--creek);
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  .event-text {
+    margin: 1.25rem 0 2rem;
+    color: var(--text-2);
+    font-size: 1.125rem;
+    max-width: 32rem;
+  }
+  .event-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 1.75rem;
+    display: grid;
+    gap: 1.5rem;
+  }
+  .event-facts {
+    margin: 0;
+    display: grid;
+    gap: 1rem;
+  }
+  .event-facts > div {
+    display: grid;
+    grid-template-columns: 5rem 1fr;
+    gap: 1rem;
+  }
+  .event-facts dt {
+    color: var(--text-3);
+    font-size: 0.9375rem;
+  }
+  .event-facts dd {
+    margin: 0;
+  }
+  .goal {
+    display: grid;
+    gap: 0.5rem;
+    border-top: 1px solid var(--line);
+    padding-top: 1.25rem;
+  }
+  .goal-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-variant-numeric: tabular-nums;
+  }
+  .goal-line strong {
+    font-family: var(--serif);
+    font-size: 1.75rem;
+    font-weight: 500;
+  }
+  .bar {
+    height: 8px;
+    border-radius: 4px;
+    background: var(--raised);
+    overflow: hidden;
+  }
+  .bar span {
+    display: block;
+    height: 100%;
+    background: var(--creek);
+    border-radius: 4px;
+  }
+
+  .donate-grid,
+  .vol-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 3rem;
+    align-items: start;
+  }
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+  }
+  legend {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    padding: 0;
+  }
+  .give,
+  .vol {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .amounts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .amount {
+    position: relative;
+    display: grid;
+    gap: 2px;
+    padding: 1rem 1.125rem;
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    background: var(--card);
+    cursor: pointer;
+    transition:
+      border-color 160ms var(--ease),
+      background-color 160ms var(--ease);
+  }
+  .amount input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .amount-v {
+    font-family: var(--serif);
+    font-size: 1.625rem;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .amount-b {
+    font-size: 0.875rem;
+    color: var(--text-2);
+  }
+  .amount:has(input:checked) {
+    border-color: var(--creek);
+    background: var(--creek-pale);
+    box-shadow: inset 0 0 0 1px var(--creek);
+  }
+  .amount:has(input:focus-visible) {
+    outline: 2px solid var(--creek);
+    outline-offset: 2px;
+  }
+  .monthly,
+  .check {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    cursor: pointer;
+  }
+  .monthly input,
+  .check input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--creek);
+  }
+  .give .btn,
+  .vol .btn {
+    justify-self: start;
+  }
+
+  .vol {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: clamp(1.25rem, 3vw, 2rem);
+  }
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+  }
+  .vol > label,
+  .row label {
+    display: grid;
+    gap: 0.375rem;
+    font-weight: 600;
+    font-size: 0.9375rem;
+  }
+  .opt {
+    font-weight: 400;
+    color: var(--text-3);
+  }
+  .checks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.625rem 1rem;
+  }
+  input:not([type="checkbox"], [type="radio"]),
+  textarea {
+    font: inherit;
+    font-weight: 400;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+    width: 100%;
+  }
+  .status:empty {
+    display: none;
+  }
+
+  @media (max-width: 960px) {
+    .hero-grid,
+    .mission-grid,
+    .stories,
+    .event-grid,
+    .donate-grid,
+    .vol-grid {
+      grid-template-columns: 1fr;
+    }
+    .mission-grid {
+      gap: 1.5rem;
+    }
+    .programs li {
+      grid-template-columns: 2.5rem 1fr;
+      gap: 0.5rem 1rem;
+    }
+    .programs li > :not(.prog-n) {
+      grid-column: 2;
+    }
+    .stats {
+      grid-template-columns: 1fr 1fr;
+    }
+    .stats > div:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .stats > div {
+      padding-bottom: 1.5rem;
+    }
+  }
+  @media (max-width: 560px) {
+    .row,
+    .checks,
+    .amounts {
+      grid-template-columns: 1fr;
+    }
+    .stats {
+      grid-template-columns: 1fr;
+    }
+    .stats > div + div {
+      padding-left: 0;
+      border-left: 0;
+      border-top: 1px solid rgb(255 255 255 / 0.2);
+    }
+  }
+</style>

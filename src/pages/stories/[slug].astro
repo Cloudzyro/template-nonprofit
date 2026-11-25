@@ -1,0 +1,105 @@
+---
+import Base from "../../layouts/Base.astro";
+import { stories, type Story } from "../../data/site";
+
+export function getStaticPaths() {
+  return stories.map((story) => ({ params: { slug: story.slug }, props: { story } }));
+}
+
+const { story } = Astro.props as { story: Story };
+const others = stories.filter((s) => s.slug !== story.slug);
+---
+
+<Base title={story.title} description={`${story.person}: ${story.quote}`}>
+  <article class="wrap story">
+    <a class="back" href="/#stories">All stories</a>
+    <h1>{story.title}</h1>
+    <p class="who"><strong>{story.person}</strong>, {story.role}</p>
+    <blockquote>{story.quote}</blockquote>
+    <div class="body">{story.body.map((p) => <p>{p}</p>)}</div>
+    <div class="cta">
+      <p>Stories like this one start with a Saturday morning or a small gift.</p>
+      <div class="actions">
+        <a class="btn btn-primary" href="/#donate">Donate</a>
+        <a class="btn btn-secondary" href="/#volunteer">Volunteer</a>
+      </div>
+    </div>
+  </article>
+  <aside class="wrap more" aria-labelledby="more-title">
+    <h2 id="more-title">More stories</h2>
+    <ul>
+      {others.map((s) => <li><a href={`/stories/${s.slug}/`}>{s.title}</a> <span class="small">{s.person}</span></li>)}
+    </ul>
+  </aside>
+</Base>
+
+<style>
+  .story {
+    max-width: 44rem;
+    padding-block: clamp(3rem, 7vw, 5rem) 3rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+  .back {
+    color: var(--creek);
+    font-weight: 600;
+    font-size: 0.9375rem;
+    text-underline-offset: 4px;
+  }
+  h1 {
+    font-size: clamp(2.25rem, 5vw, 3.25rem);
+    letter-spacing: -0.02em;
+  }
+  .who {
+    color: var(--text-2);
+  }
+  blockquote {
+    margin: 1rem 0;
+    padding-left: 1.25rem;
+    border-left: 3px solid var(--creek);
+    font-family: var(--serif);
+    font-size: 1.625rem;
+    line-height: 1.35;
+  }
+  .body {
+    display: grid;
+    gap: 1.25rem;
+    font-size: 1.125rem;
+    line-height: 1.7;
+  }
+  .cta {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    display: grid;
+    gap: 1rem;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .more {
+    max-width: 44rem;
+    padding-bottom: 5rem;
+  }
+  .more h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  .more li {
+    padding: 0.875rem 0;
+    border-top: 1px solid var(--line-strong);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    align-items: baseline;
+  }
+  .more a {
+    font-family: var(--serif);
+    font-size: 1.25rem;
+    text-underline-offset: 4px;
+  }
+</style>
